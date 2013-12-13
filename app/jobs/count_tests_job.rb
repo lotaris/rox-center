@@ -14,7 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with ROX Center.  If not, see <http://www.gnu.org/licenses/>.
-
 class CountTestsJob
   @queue = 'metrics:test_counters'
 
@@ -48,14 +47,14 @@ class CountTestsJob
     end
 
     time_cache = {}
-    cache = Hash.new{ |h,k| h[k] = k.merge(cache: time_cache, written: 0, run: 0) }
+    #cache = Hash.new{ |h,k| h[k] = k.merge(cache: time_cache, written: 0, run: 0) }
+    cache = Cache.new time_cache
     timezones.each do |timezone|
       results.each do |result|
         new result, timezone, cache
       end
     end
 
-    time_cache = {}
     cache.each_value{ |options| TestCounter.measure options }
 
     TestCounter.update_remaining_results -results.length
@@ -75,7 +74,8 @@ class CountTestsJob
   def initialize result, timezone, cache
     
     @cache = cache
-    @counter_base = { timezone: timezone, time: result.run_at }
+    #@counter_base = { timezone: timezone, time: result.run_at }
+    @counter_base = { timezone: cache.timezone_value(timezone), time: result.run_at.to_r }
 
     project = result.test_info.project
     author = result.test_info.author
@@ -106,6 +106,31 @@ class CountTestsJob
       count :written, { category: previous_category }, -1
       count :written, { category: previous_category, project: project }, -1
       count :written, { category: previous_category, user: author }, -1
+    end
+  end
+
+  class Cache
+    attr_reader :total_keys, :unique_keys
+
+    def initialize time_cache
+      @timezones = ROXCenter::Application.metrics_timezones.sort
+      @total_keys = 0
+      @unique_keys = 0
+      @data = Hash.new{ |h,k| @unique_keys += 1; h[k] = k.merge(cache: time_cache, timezone: @timezones[k[:timezone]], time: Time.at(k[:time]), written: 0, run: 0) }
+      @timezone_values = @timezones.each.with_index.inject({}){ |memo,(z,i)| memo[z] = i; memo }
+    end
+
+    def [] key
+      @total_keys += 1
+      @data[key]
+    end
+
+    def each_value &block
+      @data.each_value &block
+    end
+
+    def timezone_value zone
+      @timezone_values[zone]
     end
   end
 

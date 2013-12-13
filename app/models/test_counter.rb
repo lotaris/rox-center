@@ -37,7 +37,7 @@ class TestCounter < ActiveRecord::Base
     self.class.day timezone, timestamp
   end
 
-  def self.measure options
+  def self.measure options, measure_options = {}
 
     raise "Time is missing" unless options[:time]
     raise "Timezone is missing" unless options[:timezone]
@@ -47,7 +47,7 @@ class TestCounter < ActiveRecord::Base
 
     attributes = options.select{ |k,v| BASE_ATTRIBUTES.include? k }
 
-    cache = options[:cache] || {}
+    cache = measure_options[:cache] || {}
     timezone_cache = (cache[options[:timezone]] ||= {})
     attributes[:timestamp] = (timezone_cache[options[:time]] ||= utc_day(options[:time], options[:timezone]))
 

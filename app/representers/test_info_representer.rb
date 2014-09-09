@@ -33,6 +33,7 @@ class TestInfoRepresenter < BaseRepresenter
     property :active, test_info.active
     property :createdAt, test_info.created_at.to_ms
     property :deprecatedAt, test_info.deprecation.created_at if test_info.deprecation
+    property :data, test_info.custom_values.inject({}){ |memo,data| memo[data.name] = data.contents; memo } if test_info.custom_values.present?
 
     embed('v1:author', test_info.author){ |author| UserRepresenter.new author }
     embed('v1:project', test_info.project){ |project| ProjectRepresenter.new project }

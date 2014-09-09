@@ -14,31 +14,20 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with ROX Center.  If not, see <http://www.gnu.org/licenses/>.
-App.module('models', function() {
+(function() {
 
-  this.Project = this.HalResource.extend({
+  App.addTestWidget('gherkinScenario', Marionette.ItemView, {
 
-    idAttribute: 'apiId',
-    url: '/api/projects',
-
-    linkTag: function() {
-      return this.link('alternate').tag(this.get('name'));
+    ui: {
+      scenario: '.scenario'
     },
 
-    relations: [
-      {
-        type: Backbone.HasMany,
-        key: 'freeTestKeys',
-        relatedModel: 'TestKey',
-        includeInJSON: false
+    onRender: function() {
+      if (this.model.has('data') && this.model.get('data')['gherkin.scenario']) {
+        this.ui.scenario.text(this.model.get('data')['gherkin.scenario']);
+      } else {
+        this.ui.scenario.text('No scenario defined for this test.');
       }
-    ]
-  });
-
-  this.Projects = this.defineHalCollection(this.Project, {
-
-    halUrl: function() {
-      return App.apiRoot.fetchHalUrl([ 'self', 'v2:projects' ]);
     }
   });
-});
+})();

@@ -58,6 +58,8 @@ this.Translations.en =
       resultStatus:
         passed: "passed"
         failed: "failed"
+    gherkinScenario:
+      title: "Gherkin Scenario"
     resultDetails:
       title: "Result Details"
       instructions: "Click on a result in the other widgets to display it here."
